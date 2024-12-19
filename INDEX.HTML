@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eaeaea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #444;
+        }
+
+        nav {
+            background: #0056b3;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        button.export {
+            background: #0056b3;
+        }
+
+        button.copy {
+            background: #17a2b8;
+        }
+
+        button.clear {
+            background: #dc3545;
+        }
+
+        button.undo {
+            background: #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-wrap: wrap;
+            }
+
+            button {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="#reservationForm">Add Reservation</a>
+        <a href="#reservationTable">View Reservations</a>
+    </nav>
+
+    <div class="container">
+        <h1>Reservation Tracker</h1>
+
+        <form id="reservationForm">
+            <div class="form-group">
+                <label for="ptr">PTR:</label>
+                <input type="text" id="ptr" name="ptr" required>
+            </div>
+
+            <!-- Hidden Agent Name, DK, PCC, AH Fee -->
+            <div class="form-group hidden">
+                <label for="agentName">Agent Name:</label>
+                <input type="text" id="agentName" name="agentName" value="Enrico Tatad Jr." readonly>
+            </div>
+
+            <div class="form-group hidden">
+                <label for="dk">DK:</label>
+                <input type="text" id="dk" name="dk" value="AMN100" readonly>
+            </div>
+
+            <div class="form-group hidden">
+                <label for="pcc">PCC:</label>
+                <input type="text" id="pcc" name="pcc" value="F75G" readonly>
+            </div>
+
+            <div class="form-group hidden">
+                <label for="ahFee">AH Fee:</label>
+                <input type="text" id="ahFee" name="ahFee" value="No" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="passengerName">Passenger Name:</label>
+                <input type="text" id="passengerName" name="passengerName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="callerName">Caller Name:</label>
+                <input type="text" id="callerName" name="callerName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="pnr">PNR:</label>
+                <input type="text" id="pnr" name="pnr" required>
+            </div>
+
+            <div class="form-group">
+                <label for="source">Source:</label>
+                <select id="source" name="source">
+                    <option value="Email">Email</option>
+                    <option value="Service Call">Service Call</option>
+                    <option value="Queue">Queue</option>
+                    <option value="Salesforce">Salesforce</option>
+                    <option value="Outbound Call">Outbound Call</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="transaction">Transaction (Optional):</label>
+                <input type="text" id="transaction" name="transaction">
+            </div>
+
+            <div class="form-group">
+                <label for="remarks">Remarks:</label>
+                <textarea id="remarks" name="remarks" rows="3"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Add Reservation</button>
+                <button type="button" class="copy" id="copyTable">Copy Table</button>
+                <button type="button" class="export" id="exportToExcel">Export to Excel</button>
+                <button type="button" class="clear" id="clearAll">Clear All</button>
+                <button type="button" class="undo" id="undoLast">Undo</button>
+            </div>
+        </form>
+
+        <table id="reservationTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>PTR</th>
+                    <th>Agent Name</th>
+                    <th>Passenger Name</th>
+                    <th>Caller Name</th>
+                    <th>DK</th>
+                    <th>PCC</th>
+                    <th>PNR</th>
+                    <th>Source</th>
+                    <th>Transaction</th>
+                    <th>AH Fee</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const reservationForm = document.getElementById('reservationForm');
+        const reservationTable = document.getElementById('reservationTable').querySelector('tbody');
+        const copyTableButton = document.getElementById('copyTable');
+        const exportToExcelButton = document.getElementById('exportToExcel');
+        const clearAllButton = document.getElementById('clearAll');
+        const undoLastButton = document.getElementById('undoLast');
+
+        let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+        let lastDeletedReservation = null;
+
+        function getCentralTime() {
+            const now = new Date();
+            const centralOffset = -6;
+            const utcOffset = now.getTimezoneOffset() / 60;
+            const centralDate = new Date(now.setHours(now.getHours() + centralOffset - utcOffset));
+            const date = centralDate.toISOString().split('T')[0];
+            const time = centralDate.toTimeString().split(' ')[0];
+            return { date, time };
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+        }
+
+        function renderTable() {
+            reservationTable.innerHTML = '';
+            reservations.forEach((reservation) => {
+                const newRow = document.createElement('tr');
+                const { date, time } = getCentralTime(); // Get current central time
+                newRow.innerHTML = `
+                    <td>${date}</td>
+                    <td>${time}</td>
+                    <td>${reservation.ptr}</td>
+                    <td>${reservation.agentName}</td>
+                    <td>${reservation.passengerName}</td>
+                    <td>${reservation.callerName}</td>
+                    <td>${reservation.dk}</td>
+                    <td>${reservation.pcc}</td>
+                    <td>${reservation.pnr}</td>
+                    <td>${reservation.source}</td>
+                    <td>${reservation.transaction || ''}</td>
+                    <td>${reservation.ahFee}</td>
+                    <td>${reservation.remarks}</td>
+                `;
+                reservationTable.appendChild(newRow);
+            });
+        }
+
+        reservationForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(reservationForm);
+            const reservation = Object.fromEntries(formData.entries());
+            reservation.agentName = "Enrico Tatad Jr.";  // Hidden constant value
+            reservation.dk = "AMN100";  // Hidden constant value
+            reservation.pcc = "F75G";  // Hidden constant value
+            reservation.ahFee = "No";  // Hidden constant value
+            const { date, time } = getCentralTime(); // Get current central time for entry
+            reservation.date = date;
+            reservation.time = time;
+            reservations.push(reservation);
+            saveToLocalStorage();
+            renderTable();
+            reservationForm.reset();
+        });
+
+        copyTableButton.addEventListener('click', function () {
+            const rows = [...reservationTable.rows];
+            const tableContent = rows.map((row) => 
+                [...row.cells].map((cell) => cell.textContent).join('\t')
+            ).join('\n');
+            
+            navigator.clipboard.writeText(tableContent).then(() => alert('Table copied to clipboard!'));
+        });
+
+        exportToExcelButton.addEventListener('click', function () {
+            const csvContent = "data:text/csv;charset=utf-8," + [...reservationTable.rows]
+                .map((row) => [...row.cells].map((cell) => cell.textContent).join(',')).join('\n');
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'reservations.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        clearAllButton.addEventListener('click', function () {
+            if (confirm('Are you sure you want to clear all reservations?')) {
+                lastDeletedReservation = [...reservations];
+                reservations = [];
+                saveToLocalStorage();
+                renderTable();
+            }
+        });
+
+        undoLastButton.addEventListener('click', function () {
+            if (lastDeletedReservation) {
+                reservations = [...lastDeletedReservation];
+                lastDeletedReservation = null;
+                saveToLocalStorage();
+                renderTable();
+            } else {
+                alert('No action to undo.');
+            }
+        });
+
+        renderTable();
+    </script>
+</body>
+</html>
